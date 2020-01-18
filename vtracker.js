@@ -1,6 +1,5 @@
 var vid = document.getElementById("myVideo");
-var t = document.getElementById("r");
-var pbr = document.getElementById("pbr");
+// var pbr = document.getElementById("pbr");
 
 var ratechangelogs = [];
 var timeobj = {};
@@ -19,10 +18,8 @@ function calcPlayedTime(){
     var t = document.getElementById("r");
     var times = Array();
     // console.log(vid.played.length);
-    t.innerHTML = vid.played.length;
     var i,watchtime=0;
     for(i=0;i<vid.played.length;i++){
-        t.innerHTML = t.innerHTML + vid.played.start(i) + "   " + vid.played.end(i) + "<br>";
         watchtime += vid.played.end(i) - vid.played.start(i);
         // console.log(vid.played.start(i)+" "+vid.played.end(i));
     }
@@ -178,9 +175,9 @@ function playNext() {
 }
 
 
-function updatePlaybackVal(){
-    pbr.innerHTML = vid.playbackRate;
-}
+// function updatePlaybackVal(){
+//     pbr.innerHTML = vid.playbackRate;
+// }
 
 
 function onex(){
