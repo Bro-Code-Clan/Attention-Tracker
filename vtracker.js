@@ -1,5 +1,6 @@
 var vid = document.getElementById("myVideo");
 var t = document.getElementById("r");
+// Calculate Played Time Function
 function calcPlayedTime(){
     var vid = document.getElementById("myVideo");
     var t = document.getElementById("r");
