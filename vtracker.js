@@ -2,21 +2,32 @@ var vid = document.getElementById("myVideo");
 var t = document.getElementById("r");
 var pbr = document.getElementById("pbr");
 
+var ratechangelogs = [];
+var timeobj = {};
+var inactiveTabCount = 0;
+var myInterval;
+
+function cleanVars(){
+    ratechangelogs = [];
+    timeobj = {};
+    inactiveTabCount = 0;
+}
+
 // Calculate Played Time Function
 function calcPlayedTime(){
     var vid = document.getElementById("myVideo");
     var t = document.getElementById("r");
     var times = Array();
-    console.log(vid.played.length);
+    // console.log(vid.played.length);
     t.innerHTML = vid.played.length;
     var i,watchtime=0;
     for(i=0;i<vid.played.length;i++){
         t.innerHTML = t.innerHTML + vid.played.start(i) + "   " + vid.played.end(i) + "<br>";
         watchtime += vid.played.end(i) - vid.played.start(i);
-        console.log(vid.played.start(i)+" "+vid.played.end(i));
+        // console.log(vid.played.start(i)+" "+vid.played.end(i));
     }
-    console.log("total duration:"+vid.duration);
-    console.log("total watch duration:"+watchtime);
+    // console.log("total duration:"+vid.duration);
+    // console.log("total watch duration:"+watchtime);
     return watchtime;
 }
 
@@ -25,13 +36,9 @@ function calcSeekCount(){
 }
 
 
-
-var ratechangelogs = [];
-var timeobj = {};
-
 vid.onratechange = () => {
     if(vid.playbackRate>3){
-        console.log('speed limit -> 2')
+        console.log('speed limit -> 3')
         vid.playbackRate = 3;
     }
     if(ratechangelogs.length==0){
@@ -42,20 +49,20 @@ vid.onratechange = () => {
     timeobj['start'] = vid.currentTime;
     timeobj['rate'] = vid.playbackRate;
     ratechangelogs.push(timeobj);
-    timeobj = {};
+    // timeobj = {};
 };
 
 
-function GetSortOrder(prop) {  
-    return function(a, b) {  
-        if (a[prop] > b[prop]) {  
-            return 1;  
-        } else if (a[prop] < b[prop]) {  
-            return -1;  
-        }  
-        return 0;  
-    }  
-} 
+// function GetSortOrder(prop) {  
+//     return function(a, b) {  
+//         if (a[prop] > b[prop]) {  
+//             return 1;  
+//         } else if (a[prop] < b[prop]) {  
+//             return -1;  
+//         }  
+//         return 0;  
+//     }  
+// } 
 
 function calcPlaybackRate(){
 
@@ -70,10 +77,37 @@ function calcPlaybackRate(){
         //     }
         // });
 
-        return ratechangelogs;
+        // avg across logs
+        avg_rate = 0;
+        ratechangelogs.forEach(function(obj) {
+            avg_rate += obj.rate;
+        });
+        avg_rate /= ratechangelogs.length;
+        return avg_rate;
     }
     return vid.defaultPlaybackRate;
 }
+
+
+// Tab inactive calc
+// InActive
+window.addEventListener('blur', startTimer);
+// active
+window.addEventListener('focus', stopTimer);
+function timerHandler() {
+ inactiveTabCount++;
+//  document.getElementById("seconds").innerHTML = inactiveTabCount;
+}
+// Start timer
+function startTimer() {
+//  console.log('out1');
+ myInterval = window.setInterval(timerHandler, 1000);
+}
+// Stop timer
+function stopTimer() {
+ window.clearInterval(myInterval);
+}
+
 
 
 vid.onended = uploadData;
@@ -99,9 +133,11 @@ function uploadData(){
     // playback_rate
     data['playback_rate'] = calcPlaybackRate();
     // tab inactive time
+    data['tab_inactive'] = inactiveTabCount;
     // eye gaze
     console.log("Json:"+JSON.stringify(data))
     console.log('Uploading..');
+    cleanVars();
 }
 
 
@@ -111,7 +147,7 @@ function uploadData(){
 vid.addEventListener("DOMAttrModified", function(event) {
     if (event.attrName == "src") {
        // The `src` attribute changed!
-       calcPlayedTime();
+       cleanVars();
     }
 });
 
@@ -133,11 +169,12 @@ window.onhashchange = () => {
 };
 function playNext() { 
   //alert("Start: " + vid.played.start(0) + " End: "  + vid.played.end(0));
-  if(vid.getAttribute('src')=='gru.mp4'){
+  if(vid.getAttribute('src')=='media/gru.mp4'){
     vid.setAttribute('src','media/nlp.mp4')
   }else{
     vid.setAttribute('src','media/gru.mp4')
   }
+//   cleanVars();
 }
 
 
