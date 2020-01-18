@@ -1,5 +1,5 @@
 var vid = document.getElementById("myVideo");
-// var pbr = document.getElementById("pbr");
+var ply_next = document.getElementById("play-next");
 
 var ratechangelogs = [];
 var timeobj = {};
@@ -144,8 +144,12 @@ function uploadData(){
 vid.addEventListener("DOMAttrModified", function(event) {
     if (event.attrName == "src") {
        // The `src` attribute changed!
+       console.log("src change");
+       uploadData();
        cleanVars();
     }
+    else
+    console.log('ddd');
 });
 
 vid.onseekend = () => {
@@ -166,6 +170,7 @@ window.onhashchange = () => {
 };
 function playNext() { 
   //alert("Start: " + vid.played.start(0) + " End: "  + vid.played.end(0));
+    uploadData();
   if(vid.getAttribute('src')=='media/gru.mp4'){
     vid.setAttribute('src','media/nlp.mp4')
   }else{
@@ -174,7 +179,7 @@ function playNext() {
 //   cleanVars();
 }
 
-
+ply_next.addEventListener('click',playNext);
 // function updatePlaybackVal(){
 //     pbr.innerHTML = vid.playbackRate;
 // }
