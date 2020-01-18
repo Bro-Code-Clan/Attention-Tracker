@@ -29,6 +29,17 @@ window.onbeforeunload = function() {
 
 
 function uploadData(){
+    var data = {};
+    data['duration'] = vid.duration;
+    console.log("Json:"+JSON.stringify(data))
+    // TODOs
+    // duration done
+    // watchtime
+    // seek_count
+    // playback_rate
+    // tab inactive time
+    // eye gaze
+    calcPlayedTime();
     console.log('Uploading..');
 }
 
