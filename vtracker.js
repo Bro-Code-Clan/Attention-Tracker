@@ -14,9 +14,6 @@ function cleanVars(){
 
 // Calculate Played Time Function
 function calcPlayedTime(){
-    var vid = document.getElementById("myVideo");
-    var t = document.getElementById("r");
-    var times = Array();
     // console.log(vid.played.length);
     var i,watchtime=0;
     for(i=0;i<vid.played.length;i++){
@@ -122,7 +119,12 @@ function uploadData(){
     var data = {};
     // TODOs
     // duration done
-    data['duration'] = vid.duration;
+    //temp IDs
+    data['video_id'] = vid.getAttribute('src');
+    data['student_id'] = "abc@gmail.com";
+    data['course_id'] = 1;
+
+    data['video_length'] = vid.duration;
     // watchtime
     data['watch_time'] = calcPlayedTime();
     // seek_count
@@ -130,10 +132,15 @@ function uploadData(){
     // playback_rate
     data['playback_rate'] = calcPlaybackRate();
     // tab inactive time
-    data['tab_inactive'] = inactiveTabCount;
+    data['tab_inactive_time'] = inactiveTabCount;
     // eye gaze
     console.log("Json:"+JSON.stringify(data))
     console.log('Uploading..');
+    var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+    var theUrl = "http://127.0.0.1:80/analysis.php";
+    xmlhttp.open("POST", theUrl);
+    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xmlhttp.send(JSON.stringify(data));
     cleanVars();
 }
 
@@ -184,13 +191,3 @@ ply_next.addEventListener('click',playNext);
 //     pbr.innerHTML = vid.playbackRate;
 // }
 
-
-function onex(){
-    vid.playbackRate = 1;
-}
-function twox(){
-    vid.playbackRate = 2;
-}
-function threex(){
-    vid.playbackRate = 3;
-}
