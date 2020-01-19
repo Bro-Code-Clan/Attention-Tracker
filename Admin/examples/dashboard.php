@@ -1,3 +1,9 @@
+<?php
+    $con = mysqli_connect("localhost","root","","attention_tracker");
+    if(!$con){
+        echo "Not Connected";
+    }
+?>
 <!--
 =========================================================
  Material Dashboard - v2.1.1
@@ -12,6 +18,7 @@
 =========================================================
 
  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. -->
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -32,6 +39,64 @@
   <link href="../assets/css/material-dashboard.css?v=2.1.1" rel="stylesheet" />
   <!-- CSS Just for demo purpose, don't include it in your project -->
   <link href="../assets/demo/demo.css" rel="stylesheet" />
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script type="text/javascript">
+  
+    // Load the Visualization API and the piechart package.
+    google.charts.load('current', {'packages':['corechart']});
+      
+    // Set a callback to run when the Google Visualization API is loaded.
+    google.charts.setOnLoadCallback(drawChart);
+      
+    function drawChart() {
+      // let Getdata = {
+      //   "cols": [
+      //     {"id":"","label":"Topping","pattern":"","type":"string"},
+      //     {"id":"","label":"Slices","pattern":"","type":"number"}
+      //   ],
+      //   "rows": [
+      //     {"c":[{"v":"Mushrooms","f":null},{"v":3,"f":null}]},
+      //     {"c":[{"v":"Onions","f":null},{"v":1,"f":null}]},
+      //     {"c":[{"v":"Olives","f":null},{"v":1,"f":null}]},
+      //     {"c":[{"v":"Zucchini","f":null},{"v":1,"f":null}]},
+      //     {"c":[{"v":"Pepperoni","f":null},{"v":2,"f":null}]}
+      //   ]
+      // };
+      var data = google.visualization.arrayToDataTable([
+        ['course_id','count'],
+        <?php 
+          $query = "select COUNT(student_id) AS count, course_id from course_enroll GROUP BY course_id";
+          $exec = mysqli_query($con,$query);
+          while($row = mysqli_fetch_array($exec)){
+            echo "['".$row['count']."',".$row['course_id']."],";
+          }
+        ?> 
+      ]);
+
+      console.log(data);
+
+      var options = {
+        pieHole: 0.5,
+        pieSliceTextStyle: {
+          color: 'black',
+        },
+        legend: 'none',
+        height: 300
+      };
+          
+      // Create our data table out of JSON data loaded from server.
+      // var data = new google.visualization.DataTable(Getdata);
+
+      // Instantiate and draw our chart, passing in some options.
+      var chart = new google.visualization.PieChart(document.getElementById('pie_chart'));
+      chart.draw(data,options);
+      var chart = new google.visualization.ColumnChart(document.getElementById('column_chart'));
+      chart.draw(data,options);
+      var chart = new google.visualization.LineChart(document.getElementById('line_chart'));
+      chart.draw(data,options);
+    }
+  </script>
 </head>
 
 <body class="">
@@ -247,8 +312,7 @@
           <div class="row">
             <div class="col-md-4">
               <div class="card card-chart">
-                <div class="card-header card-header-success">
-                  <div class="ct-chart" id="dailySalesChart"></div>
+                <div class="card-header" id="pie_chart">
                 </div>
                 <div class="card-body">
                   <h4 class="card-title">Daily Sales</h4>
@@ -264,8 +328,7 @@
             </div>
             <div class="col-md-4">
               <div class="card card-chart">
-                <div class="card-header card-header-warning">
-                  <div class="ct-chart" id="websiteViewsChart"></div>
+              <div class="card-header" id="column_chart">
                 </div>
                 <div class="card-body">
                   <h4 class="card-title">Email Subscriptions</h4>
@@ -280,8 +343,7 @@
             </div>
             <div class="col-md-4">
               <div class="card card-chart">
-                <div class="card-header card-header-danger">
-                  <div class="ct-chart" id="completedTasksChart"></div>
+              <div class="card-header" id="line_chart">
                 </div>
                 <div class="card-body">
                   <h4 class="card-title">Completed Tasks</h4>
