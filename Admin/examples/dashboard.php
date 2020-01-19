@@ -3,6 +3,16 @@
     if(!$con){
         echo "Not Connected";
     }
+    $q1 = mysqli_query($con,"select *from `course` where `course_instructor`='1'");
+    $q2 = mysqli_query($con,"select *from `course_enroll` where `course_id` IN (select `course_id` from `course` where `course_instructor`='1')");
+    $q3 = mysqli_query($con,"select *from `video_analysis` where `course_id` IN (select `course_id` from `course` where `course_instructor`='1')");
+    $course_count = mysqli_num_rows($q1);
+    $stud_count = mysqli_num_rows($q2);
+    $avg_atten_rate = 0;
+    while($row = mysqli_fetch_array($q3)){
+      $avg_atten_rate = $avg_atten_rate + $row['attention_score'];
+    }
+    $avg_atten_rate = $avg_atten_rate / mysqli_num_rows($q3);
 ?>
 <!--
 =========================================================
@@ -28,9 +38,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <title>
-    Material Dashboard by Creative Tim
-  </title>
+  <title>Attention Tracker Dashboard</title>
   <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
   <!--     Fonts and icons     -->
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
@@ -50,32 +58,6 @@
     google.charts.setOnLoadCallback(drawChart);
       
     function drawChart() {
-      // let Getdata = {
-      //   "cols": [
-      //     {"id":"","label":"Topping","pattern":"","type":"string"},
-      //     {"id":"","label":"Slices","pattern":"","type":"number"}
-      //   ],
-      //   "rows": [
-      //     {"c":[{"v":"Mushrooms","f":null},{"v":3,"f":null}]},
-      //     {"c":[{"v":"Onions","f":null},{"v":1,"f":null}]},
-      //     {"c":[{"v":"Olives","f":null},{"v":1,"f":null}]},
-      //     {"c":[{"v":"Zucchini","f":null},{"v":1,"f":null}]},
-      //     {"c":[{"v":"Pepperoni","f":null},{"v":2,"f":null}]}
-      //   ]
-      // };
-      var data = google.visualization.arrayToDataTable([
-        ['course_id','count'],
-        <?php 
-          $query = "select COUNT(student_id) AS count, course_id from course_enroll GROUP BY course_id";
-          $exec = mysqli_query($con,$query);
-          while($row = mysqli_fetch_array($exec)){
-            echo "['".$row['count']."',".$row['course_id']."],";
-          }
-        ?> 
-      ]);
-
-      console.log(data);
-
       var options = {
         pieHole: 0.5,
         pieSliceTextStyle: {
@@ -84,17 +66,49 @@
         legend: 'none',
         height: 300
       };
+
+      var pie_data = google.visualization.arrayToDataTable([
+        ['course_id','count'],
+        <?php
+          $query = "select COUNT(student_id) AS count, course_id from course_enroll where `course_id` IN (select `course_id` from `course` where `course_instructor`='1') GROUP BY course_id";
+          $exec = mysqli_query($con,$query);
+          while($row = mysqli_fetch_array($exec)){
+            echo "['".$row['count']."',".$row['course_id']."],";
+          }
+        ?> 
+      ]);
           
+      var column_data = google.visualization.arrayToDataTable([
+        ['course_id','count'],
+        <?php
+          $query = "select COUNT(student_id) AS count, course_id from course_enroll GROUP BY course_id";
+          $exec = mysqli_query($con,$query);
+          while($row = mysqli_fetch_array($exec)){
+            echo "['".$row['count']."',".$row['course_id']."],";
+          }
+        ?> 
+      ]);
+
+      var line_data = google.visualization.arrayToDataTable([
+        ['student_id','attention_score'],
+        <?php
+          $query = "select student_id,attention_score from video_analysis where `course_id` IN (select `course_id` from `course` where `course_instructor`='1')";
+          $exec = mysqli_query($con,$query);
+          while($row = mysqli_fetch_array($exec)){
+            echo "['".$row['student_id']."',".$row['attention_score']."],";
+          }
+        ?> 
+      ]);
+
       // Create our data table out of JSON data loaded from server.
       // var data = new google.visualization.DataTable(Getdata);
-
       // Instantiate and draw our chart, passing in some options.
       var chart = new google.visualization.PieChart(document.getElementById('pie_chart'));
-      chart.draw(data,options);
+      chart.draw(pie_data,options);
       var chart = new google.visualization.ColumnChart(document.getElementById('column_chart'));
-      chart.draw(data,options);
+      chart.draw(column_data,options);
       var chart = new google.visualization.LineChart(document.getElementById('line_chart'));
-      chart.draw(data,options);
+      chart.draw(line_data,options);
     }
   </script>
 </head>
@@ -105,31 +119,30 @@
       <!--
         Tip 1: You can change the color of the sidebar using: data-color="purple | azure | green | orange | danger"
 
-        Tip 2: you can also add an image using data-image tag
-    -->
+        Tip 2: you can also add an image using data-image tag -->
       <div class="logo">
-        <a href="http://www.creative-tim.com" class="simple-text logo-normal">
-          Creative Tim
+        <a href="./dashboard.php" class="simple-text logo-normal">
+          Attention Tracker
         </a>
       </div>
       <div class="sidebar-wrapper">
         <ul class="nav">
           <li class="nav-item active  ">
-            <a class="nav-link" href="./dashboard.html">
+            <a class="nav-link" href="./dashboard.php">
               <i class="material-icons">dashboard</i>
               <p>Dashboard</p>
             </a>
           </li>
           <li class="nav-item ">
-            <a class="nav-link" href="./user.html">
-              <i class="material-icons">person</i>
-              <p>User Profile</p>
+            <a class="nav-link" href="./tables.php">
+              <i class="material-icons">content_paste</i>
+              <p>Registered Student Details</p>
             </a>
           </li>
           <li class="nav-item ">
-            <a class="nav-link" href="./tables.html">
-              <i class="material-icons">content_paste</i>
-              <p>Table List</p>
+            <a class="nav-link" href="./user.php">
+              <i class="material-icons">person</i>
+              <p>User Profile</p>
             </a>
           </li>
           <!-- <li class="nav-item ">
@@ -248,7 +261,7 @@
                     <i class="material-icons">content_copy</i>
                   </div>
                   <p class="card-category">Courses</p>
-                  <h3 class="card-title" id="coursecount">0
+                  <h3 class="card-title" id="coursecount"><?php echo $course_count;?>
                     <small></small>
                   </h3>
                 </div>
@@ -267,12 +280,12 @@
                     <i class="material-icons">store</i>
                   </div>
                   <p class="card-category">Participants</p>
-                  <h3 class="card-title" id="studcount">0</h3>
+                  <h3 class="card-title" id="studcount"><?php echo $stud_count;?></h3>
                 </div>
                 <div class="card-footer">
-                  <div class="stats">
-                    <!-- <i class="material-icons">date_range</i> Last 24 Hours -->
-                  </div>
+                  <!-- <div class="stats">
+                    <i class="material-icons">date_range</i> Last 24 Hours
+                  </div> -->
                 </div>
               </div>
             </div>
@@ -282,8 +295,8 @@
                   <div class="card-icon">
                     <i class="material-icons">info_outline</i>
                   </div>
-                  <p class="card-category">Average Attention rate</p>
-                  <h3 class="card-title" id="attenavg">0</h3>
+                  <p class="card-category">Attention rate</p>
+                  <h3 class="card-title" id="attenavg"><?php echo $avg_atten_rate?></h3>
                 </div>
                 <div class="card-footer">
                   <div class="stats">
@@ -296,15 +309,15 @@
               <div class="card card-stats">
                 <div class="card-header card-header-info card-header-icon">
                   <div class="card-icon">
-                    <i class="fa fa-twitter"></i>
+                    <i class="fa fa-video-camera"></i>
                   </div>
-                  <p class="card-category">Followers</p>
-                  <h3 class="card-title">+245</h3>
+                  <p class="card-category">Video Lectures</p>
+                  <h3 class="card-title">2</h3>
                 </div>
                 <div class="card-footer">
-                  <div class="stats">
+                  <!-- <div class="stats">
                     <i class="material-icons">update</i> Just Updated
-                  </div>
+                  </div> -->
                 </div>
               </div>
             </div>
@@ -315,14 +328,29 @@
                 <div class="card-header" id="pie_chart">
                 </div>
                 <div class="card-body">
-                  <h4 class="card-title">Daily Sales</h4>
-                  <p class="card-category">
-                    <span class="text-success"><i class="fa fa-long-arrow-up"></i> 55% </span> increase in today sales.</p>
+                  <h4 class="card-title">Student Registration/Course</h4>
+                  <!-- <p class="card-category">
+                    <span class="text-success"><i class="fa fa-long-arrow-up"></i> 55% </span> increase in today sales.</p> -->
                 </div>
                 <div class="card-footer">
-                  <div class="stats">
+                  <!-- <div class="stats">
                     <i class="material-icons">access_time</i> updated 4 minutes ago
-                  </div>
+                  </div> -->
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card card-chart">
+              <div class="card-header" id="line_chart">
+                </div>
+                <div class="card-body">
+                  <h4 class="card-title">Attention Score</h4>
+                  <!-- <p class="card-category">Last Campaign Performance</p> -->
+                </div>
+                <div class="card-footer">
+                  <!-- <div class="stats">
+                    <i class="material-icons">access_time</i> campaign sent 2 days ago
+                  </div> -->
                 </div>
               </div>
             </div>
@@ -332,32 +360,17 @@
                 </div>
                 <div class="card-body">
                   <h4 class="card-title">Email Subscriptions</h4>
-                  <p class="card-category">Last Campaign Performance</p>
+                  <!-- <p class="card-category">Last Campaign Performance</p> -->
                 </div>
                 <div class="card-footer">
-                  <div class="stats">
+                  <!-- <div class="stats">
                     <i class="material-icons">access_time</i> campaign sent 2 days ago
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card card-chart">
-              <div class="card-header" id="line_chart">
-                </div>
-                <div class="card-body">
-                  <h4 class="card-title">Completed Tasks</h4>
-                  <p class="card-category">Last Campaign Performance</p>
-                </div>
-                <div class="card-footer">
-                  <div class="stats">
-                    <i class="material-icons">access_time</i> campaign sent 2 days ago
-                  </div>
+                  </div> -->
                 </div>
               </div>
             </div>
           </div>
-          <div class="row">
+          <!-- <div class="row">
             <div class="col-lg-6 col-md-12">
               <div class="card">
                 <div class="card-header card-header-tabs card-header-primary">
@@ -647,10 +660,10 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
-      <footer class="footer">
+      <!-- <footer class="footer">
         <div class="container-fluid">
           <nav class="float-left">
             <ul>
@@ -684,77 +697,9 @@
             <a href="https://www.creative-tim.com" target="_blank">Creative Tim</a> for a better web.
           </div>
         </div>
-      </footer>
+      </footer> -->
     </div>
   </div>
-  <!-- <div class="fixed-plugin">
-    <div class="dropdown show-dropdown">
-      <a href="#" data-toggle="dropdown">
-        <i class="fa fa-cog fa-2x"> </i>
-      </a>
-      <ul class="dropdown-menu">
-        <li class="header-title"> Sidebar Filters</li>
-        <li class="adjustments-line">
-          <a href="javascript:void(0)" class="switch-trigger active-color">
-            <div class="badge-colors ml-auto mr-auto">
-              <span class="badge filter badge-purple" data-color="purple"></span>
-              <span class="badge filter badge-azure" data-color="azure"></span>
-              <span class="badge filter badge-green" data-color="green"></span>
-              <span class="badge filter badge-warning" data-color="orange"></span>
-              <span class="badge filter badge-danger" data-color="danger"></span>
-              <span class="badge filter badge-rose active" data-color="rose"></span>
-            </div>
-            <div class="clearfix"></div>
-          </a>
-        </li>
-        <li class="header-title">Images</li>
-        <li class="active">
-          <a class="img-holder switch-trigger" href="javascript:void(0)">
-            <img src="../assets/img/sidebar-1.jpg" alt="">
-          </a>
-        </li>
-        <li>
-          <a class="img-holder switch-trigger" href="javascript:void(0)">
-            <img src="../assets/img/sidebar-2.jpg" alt="">
-          </a>
-        </li>
-        <li>
-          <a class="img-holder switch-trigger" href="javascript:void(0)">
-            <img src="../assets/img/sidebar-3.jpg" alt="">
-          </a>
-        </li>
-        <li>
-          <a class="img-holder switch-trigger" href="javascript:void(0)">
-            <img src="../assets/img/sidebar-4.jpg" alt="">
-          </a>
-        </li>
-        <li class="button-container">
-          <a href="https://www.creative-tim.com/product/material-dashboard" target="_blank" class="btn btn-primary btn-block">Free Download</a>
-        </li>
-        <!-- <li class="header-title">Want more components?</li>
-            <li class="button-container">
-                <a href="https://www.creative-tim.com/product/material-dashboard-pro" target="_blank" class="btn btn-warning btn-block">
-                  Get the pro version
-                </a>
-            </li> -->
-        <li class="button-container">
-          <a href="https://demos.creative-tim.com/material-dashboard/docs/2.1/getting-started/introduction.html" target="_blank" class="btn btn-default btn-block">
-            View Documentation
-          </a>
-        </li>
-        <li class="button-container github-star">
-          <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star ntkme/github-buttons on GitHub">Star</a>
-        </li>
-        <li class="header-title">Thank you for 95 shares!</li>
-        <li class="button-container text-center">
-          <button id="twitter" class="btn btn-round btn-twitter"><i class="fa fa-twitter"></i> &middot; 45</button>
-          <button id="facebook" class="btn btn-round btn-facebook"><i class="fa fa-facebook-f"></i> &middot; 50</button>
-          <br>
-          <br>
-        </li>
-      </ul>
-    <!-- </div>
-  </div> -->
   <!--   Core JS Files   -->
   <script src="../assets/js/core/jquery.min.js"></script>
   <script src="../assets/js/core/popper.min.js"></script>
