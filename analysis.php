@@ -26,8 +26,8 @@
     if ($watch_time>0) {
         $time_ratio = $watch_time * 100 / $video_length;
     }
-    $attention_score = "";
-    $quer = "INSERT INTO `video_analysis`(`course_id`, `student_id`, `video_id`, `video_length`, `watch_time`, `seek_count`, `playback_rate`, `tab_inactive_time`, `eye_gaze`, `time_ratio`, `attention_score`) VALUES ('".$course_id."','".$student_id."','".$video_id."','".$video_length."','".$watch_time."','".$seek_count."','".$playback_rate."','".$tab_inactive_time."',0,'".$time_ratio."',0)";
+    $attention_score = 9 * $time_ratio - 2 * $seek_count - 4 * $tab_inactive_time - 3 * $playback_rate;
+    $quer = "INSERT INTO `video_analysis`(`course_id`, `student_id`, `video_id`, `video_length`, `watch_time`, `seek_count`, `playback_rate`, `tab_inactive_time`, `eye_gaze`, `time_ratio`, `attention_score`) VALUES ('".$course_id."','".$student_id."','".$video_id."','".$video_length."','".$watch_time."','".$seek_count."','".$playback_rate."','".$tab_inactive_time."',0,'".$time_ratio."','".$attention_score."')";
     $res = mysqli_query($con,$quer);
     if($res) {
         echo "Successfull";
